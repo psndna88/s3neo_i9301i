@@ -113,7 +113,7 @@ static struct notifier_block __refdata lpm_cpu_nblk = {
 };
 
 static uint32_t allowed_l2_mode;
-static uint32_t sysfs_dbg_l2_mode __refdata = MSM_SPM_L2_MODE_POWER_COLLAPSE;
+static uint32_t sysfs_dbg_l2_mode = MSM_SPM_L2_MODE_POWER_COLLAPSE;
 static uint32_t default_l2_mode;
 
 
@@ -290,7 +290,7 @@ static int lpm_system_mode_select(
 {
 	int best_level = -1;
 	int i;
-	uint32_t best_level_pwr = ~0U;
+	uint32_t best_level_pwr = ~0UL;
 	uint32_t pwr;
 	uint32_t latency_us = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
 
@@ -512,7 +512,7 @@ static void msm_pm_set_timer(uint32_t modified_time_us)
 static noinline int lpm_cpu_power_select(struct cpuidle_device *dev, int *index)
 {
 	int best_level = -1;
-	uint32_t best_level_pwr = ~0U;
+	uint32_t best_level_pwr = ~0UL;
 	uint32_t latency_us = pm_qos_request(PM_QOS_CPU_DMA_LATENCY);
 	uint32_t sleep_us =
 		(uint32_t)(ktime_to_us(tick_nohz_get_sleep_length()));
@@ -1149,7 +1149,7 @@ fail:
 	return -EFAULT;
 }
 
-static struct of_device_id cpu_modes_mtch_tbl[] __initdata = {
+static struct of_device_id cpu_modes_mtch_tbl[] = {
 	{.compatible = "qcom,cpu-modes"},
 	{},
 };
@@ -1163,7 +1163,7 @@ static struct platform_driver cpu_modes_driver = {
 	},
 };
 
-static struct of_device_id system_modes_mtch_tbl[] __initdata = {
+static struct of_device_id system_modes_mtch_tbl[] = {
 	{.compatible = "qcom,system-modes"},
 	{},
 };
@@ -1177,7 +1177,7 @@ static struct platform_driver system_modes_driver = {
 	},
 };
 
-static struct of_device_id lpm_levels_match_table[] __initdata = {
+static struct of_device_id lpm_levels_match_table[] = {
 	{.compatible = "qcom,lpm-levels"},
 	{},
 };

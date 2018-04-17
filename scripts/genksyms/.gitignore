@@ -1,0 +1,5 @@
+/genksyms
+/keywords.hash.c
+/lex.lex.c
+/parse.tab.c
+/parse.tab.h

@@ -71,7 +71,7 @@ static int msm_send_ext_buck_votes(int gpio_num, int settling_time)
 	return rc;
 }
 
-static int msm_ext_buck_probe(struct platform_device *pdev)
+static __init int msm_ext_buck_probe(struct platform_device *pdev)
 {
 	char *key = NULL;
 	int gpio_num;
@@ -105,7 +105,7 @@ static struct of_device_id msm_ext_buck_table[] __initdata = {
 	{},
 };
 
-static struct platform_driver msm_ext_buck_driver = {
+static __refdata struct platform_driver msm_ext_buck_driver = {
 	.probe = msm_ext_buck_probe,
 	.driver = {
 		.name = "ext-buck-control",
