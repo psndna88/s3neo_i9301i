@@ -137,6 +137,9 @@ static unsigned long sel_last_ino = SEL_INO_NEXT - 1;
 static ssize_t sel_read_enforce(struct file *filp, char __user *buf,
 				size_t count, loff_t *ppos)
 {
+#if defined(CONFIG_SECURITY_SELINUX_FAKE_ENFORCE) && !defined (CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE)
+	int selinux_enforcing = 1;
+#endif
 	char tmpbuf[TMPBUFLEN];
 	ssize_t length;
 
@@ -144,7 +147,7 @@ static ssize_t sel_read_enforce(struct file *filp, char __user *buf,
 	return simple_read_from_buffer(buf, count, ppos, tmpbuf, length);
 }
 
-#ifdef CONFIG_SECURITY_SELINUX_DEVELOP
+#if (defined(CONFIG_SECURITY_SELINUX_DEVELOP) && !defined(CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE))
 static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 				 size_t count, loff_t *ppos)
 
@@ -158,7 +161,7 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 		goto out;
 
 	/* No partial writes. */
-	length = EINVAL;
+	length = -EINVAL;
 	if (*ppos != 0)
 		goto out;
 
@@ -174,20 +177,6 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 	length = -EINVAL;
 	if (sscanf(page, "%d", &new_value) != 1)
 		goto out;
-#ifdef CONFIG_ALWAYS_ENFORCE
-	// If build is user build and enforce option is set, selinux is always enforcing
-	new_value = 1;
-	length = task_has_security(current, SECURITY__SETENFORCE);
-	audit_log(current->audit_context, GFP_KERNEL, AUDIT_MAC_STATUS,
-                        "config_always_enforce - true; enforcing=%d old_enforcing=%d auid=%u ses=%u",
-                        new_value, selinux_enforcing,
-                        audit_get_loginuid(current),
-                        audit_get_sessionid(current));
-	selinux_enforcing = new_value;
-	avc_ss_reset(0);
-	selnl_notify_setenforce(new_value);
-        selinux_status_update_setenforce(new_value);
-#else
 	if (new_value != selinux_enforcing) {
 		length = task_has_security(current, SECURITY__SETENFORCE);
 		if (length)
@@ -203,7 +192,6 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 		selnl_notify_setenforce(selinux_enforcing);
 		selinux_status_update_setenforce(selinux_enforcing);
 	}
-#endif
 	length = count;
 
 #if defined(CONFIG_TZ_ICCC)
@@ -223,7 +211,11 @@ out:
 
 static const struct file_operations sel_enforce_ops = {
 	.read		= sel_read_enforce,
+#ifdef CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE
+	.write		= NULL,
+#else
 	.write		= sel_write_enforce,
+#endif
 	.llseek		= generic_file_llseek,
 };
 
@@ -1954,9 +1946,6 @@ static int __init init_sel_fs(void)
 {
 	int err;
 
-#ifdef CONFIG_ALWAYS_ENFORCE
-	selinux_enabled = 1;
-#endif
 	if (!selinux_enabled)
 		return 0;
 

@@ -773,7 +773,11 @@ static noinline int slow_avc_audit(u32 ssid, u32 tsid, u16 tclass,
 	slad.ssid = ssid;
 	slad.tsid = tsid;
 	slad.audited = audited;
+#if defined(CONFIG_SECURITY_SELINUX_FORCE_PERMISSIVE) || defined(CONFIG_SECURITY_SELINUX_FAKE_ENFORCE)
+	slad.denied = 0;
+#else
 	slad.denied = denied;
+#endif
 	slad.result = result;
 
 	a->selinux_audit_data->slad = &slad;
@@ -1087,11 +1091,7 @@ static noinline int avc_denied(u32 ssid, u32 tsid,
 {
 	if (flags & AVC_STRICT)
 		return -EACCES;
-#ifdef CONFIG_ALWAYS_ENFORCE
-	if (!(avd->flags & AVD_FLAGS_PERMISSIVE))
-#else
 	if (selinux_enforcing && !(avd->flags & AVD_FLAGS_PERMISSIVE))
-#endif
 		return -EACCES;
 
 	avc_update_node(AVC_CALLBACK_GRANT, requested, cmd, ssid,
