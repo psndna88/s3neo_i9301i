@@ -195,10 +195,7 @@ static ssize_t sel_write_enforce(struct file *file, const char __user *buf,
 	length = count;
 
 #if defined(CONFIG_TZ_ICCC)
-	if (selinux_enabled && selinux_enforcing)
-		Iccc_SaveData_Kernel(SELINUX_STATUS, 0x0);
-	else
-		Iccc_SaveData_Kernel(SELINUX_STATUS, 0x1);
+	Iccc_SaveData_Kernel(SELINUX_STATUS, 0x0);
 #endif
 
 out:
